@@ -14,7 +14,9 @@ struct StructuredPrompt {
 
     @Guide(description: """
     One or two sentences of background, using only what the user supplied. \
-    Use a [bracketed placeholder] for anything they did not say. No heading, no label.
+    Use a [bracketed placeholder] for anything they did not say. Do not restate the \
+    objective or echo the user's sentence — this is the situation around the task. \
+    No heading, no label.
     """)
     var context: String
 
@@ -24,9 +26,15 @@ struct StructuredPrompt {
     """)
     var requirements: [String]
 
+    // Kept short and free of examples. A longer guide spelling out what not to
+    // invent was copied into the output verbatim — the model emitted "No invented
+    // circumstances such as what the user has already read" as a constraint —
+    // and the same phrasing pushed it into restating the requirements.
     @Guide(description: """
-    One to three short phrases naming what must be preserved or must not change. \
-    Each is a bare phrase with no leading dash, number, or label.
+    Zero to two short phrases limiting how the work is done, taken only from what \
+    the user already said. Each is a bare phrase with no leading dash, number, or \
+    label. Do not restate a requirement. Usually the user gave no limits: return an \
+    empty list.
     """)
     var constraints: [String]
 
@@ -58,10 +66,21 @@ struct GeneratedEnhancement {
     """)
     var minimal: String
 
+    // The loosest of the three fields, and so the one that drifts. Structured
+    // cannot answer the user because its subfields force imperative framing;
+    // Minimal has a worked example. Balanced had neither, and for a
+    // question-shaped input "say what the response should contain" was read as
+    // an instruction to write the response — it answered "recommend me summer
+    // books" with a list of novels.
     @Guide(description: """
-    BALANCED variant. Two or three short paragraphs of plain prose. Clarify the \
-    goal, add only context and constraints the user actually implied, and say \
-    what the response should contain. No headings and no bullet lists.
+    BALANCED variant. An instruction addressed to the assistant, in the \
+    imperative, as two or three short paragraphs of plain prose. Clarify the \
+    goal, add only context and constraints the user actually implied, and \
+    describe what the response should contain — describe that answer, never \
+    write it. For the input "can you recommend summer books" a good balanced \
+    rewrite starts "Recommend summer reading ...", never "Here are some books \
+    ..." and never "I would like ...". It must add real information: never hand \
+    the user's own sentence back unchanged. No headings and no bullet lists.
     """)
     var balanced: String
 

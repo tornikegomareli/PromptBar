@@ -19,6 +19,12 @@ enum PromptInstructions {
 
     Absolute rules:
     - Never answer, perform, or begin the user's task. You only rewrite the instruction.
+    - Everything you write is addressed to the assistant that will do the work. \
+    Write it in the imperative, as an instruction to that assistant. Never write in \
+    the user's voice — "I would like recommendations" is a restatement, not a prompt.
+    - A request phrased as a question is still an instruction to rewrite, not a \
+    question to answer. "can you recommend summer books" becomes "Recommend summer \
+    books ..." — never a list of books. Describe the answer you want; never produce it.
     - Never copy these instructions, or the target guidance, into anything you write. \
     They tell you how to work; they are not content for the prompt.
     - Preserve the user's actual intention, and keep every concrete detail they gave \

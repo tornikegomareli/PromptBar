@@ -1,0 +1,71 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, without the leading v (e.g. 0.2.0)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish
+    runs-on: macos-26
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Test
+        run: swift test
+
+      - name: Build release artifact
+        run: Scripts/make_release.sh "${{ steps.version.outputs.version }}"
+
+      - name: Compute checksum
+        id: sha
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          echo "sha=$(cat dist/PromptBar-$VERSION.zip.sha256)" >> "$GITHUB_OUTPUT"
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          SHA="${{ steps.sha.outputs.sha }}"
+          NOTES=$(cat <<EOF
+          ## Install
+
+          \`\`\`bash
+          brew tap tornikegomareli/tap
+          brew install --cask promptbar
+          \`\`\`
+
+          Requires macOS 26 on Apple silicon, with Apple Intelligence enabled.
+
+          \`\`\`
+          SHA-256  $SHA
+          \`\`\`
+          EOF
+          )
+          gh release create "v$VERSION" \
+            "dist/PromptBar-$VERSION.zip" \
+            --title "PromptBar $VERSION" \
+            --notes "$NOTES" \
+            --verify-tag || \
+          gh release upload "v$VERSION" "dist/PromptBar-$VERSION.zip" --clobber

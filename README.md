@@ -39,6 +39,9 @@ Every enhancement runs on Apple's on-device Foundation Models, nothing leaves yo
   Auto. The profile shapes the rewrite and stays visible and editable.
 - **Instant Enhance** — `⇧⌥E` rewrites the clipboard in place with no window at all, and
   keeps a restore point.
+- **Compile from a selection** — select text anywhere and a **Compile** chip appears
+  beside it, opening PromptBar on that text. Optional, off by default, and the only
+  feature that asks for a permission. [Details below](#compile-from-a-selection).
 - **Keyboard-first** — the default flow is copy → shortcut → `↵`. No pointer required.
 - **Prompt check** — a local, deterministic linter rates the input before the model runs.
 - **Optional local history** — off until you turn it on, stored only in the app

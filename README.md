@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Design/icon.svg" width="128" alt="PromptBar app icon">
+  <img src="Design/icon-256.png" width="128" alt="PromptBar app icon">
 </p>
 
 <h1 align="center">PromptBar</h1>

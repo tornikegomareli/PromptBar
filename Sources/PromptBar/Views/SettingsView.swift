@@ -101,9 +101,9 @@ struct SettingsView: View {
             }
             row("Instant Enhance") {
                 HStack(spacing: 6) {
-                    Keycap(label: "⌃", big: false)
+                    Keycap(label: "⇧", big: false)
                     Keycap(label: "⌥", big: false)
-                    Keycap(label: "P", big: false)
+                    Keycap(label: "E", big: false)
                 }
             }
             row("Default target") {

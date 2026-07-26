@@ -15,10 +15,17 @@ struct HotKey: Equatable, Sendable {
         carbonModifiers: UInt32(shiftKey | optionKey)
     )
 
-    /// Default "Instant Enhance": ⌃⌥P.
+    /// Default "Instant Enhance": ⇧⌥E.
+    ///
+    /// Shares the ⇧⌥ pair with `openPanel` on purpose. This was ⌃⌥P, which is
+    /// not a system shortcut but is commonly claimed by other apps, and a global
+    /// hotkey that silently loses the race is indistinguishable from a broken
+    /// feature — `RegisterEventHotKey` just fails and the key does nothing.
+    /// Reusing a modifier pair already proven to reach the app is the cheapest
+    /// way to avoid that.
     static let instantEnhance = HotKey(
-        keyCode: UInt32(kVK_ANSI_P),
-        carbonModifiers: UInt32(controlKey | optionKey)
+        keyCode: UInt32(kVK_ANSI_E),
+        carbonModifiers: UInt32(shiftKey | optionKey)
     )
 }
 

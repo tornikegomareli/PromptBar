@@ -37,7 +37,7 @@ Every enhancement runs on Apple's on-device Foundation Models, nothing leaves yo
   and ambiguous terms keep the user's own wording.
 - **Target profiles** — General AI, Coding Agent, Research, Writing, Image Generation, or
   Auto. The profile shapes the rewrite and stays visible and editable.
-- **Instant Enhance** — `⌃⌥P` rewrites the clipboard in place with no window at all, and
+- **Instant Enhance** — `⇧⌥E` rewrites the clipboard in place with no window at all, and
   keeps a restore point.
 - **Keyboard-first** — the default flow is copy → shortcut → `↵`. No pointer required.
 - **Prompt check** — a local, deterministic linter rates the input before the model runs.
@@ -115,7 +115,7 @@ clipboard workaround. The **⇧⌥Space** hotkey still needs no permissions at a
 | Key | Action |
 | --- | --- |
 | `⇧⌥Space` | Open PromptBar |
-| `⌃⌥P` | Instant Enhance the clipboard, no window |
+| `⇧⌥E` | Instant Enhance the clipboard, no window |
 | `⌘↵` | Generate from typed input |
 | `↵` | Copy the selected variant and close |
 | `⌘1` `⌘2` `⌘3` | Select Balanced / Structured / Minimal |

@@ -60,7 +60,7 @@ struct ShortcutRow: Identifiable, Sendable {
 
     static let all: [ShortcutRow] = [
         .init(action: "Open PromptBar", keys: "⇧⌥Space"),
-        .init(action: "Instant Enhance", keys: "⌃⌥P"),
+        .init(action: "Instant Enhance", keys: "⇧⌥E"),
         .init(action: "Copy & close", keys: "↵"),
         .init(action: "Generate from input", keys: "⌘↵"),
         .init(action: "Select Balanced", keys: "⌘1"),

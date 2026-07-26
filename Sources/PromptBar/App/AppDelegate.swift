@@ -171,9 +171,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(
             withTitle: "Instant Enhance Clipboard",
             action: #selector(instantEnhance),
-            keyEquivalent: "p"
+            keyEquivalent: "e"
         ).do {
-            $0.keyEquivalentModifierMask = [.control, .option]
+            $0.keyEquivalentModifierMask = [.shift, .option]
             $0.target = self
         }
 

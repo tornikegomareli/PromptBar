@@ -5,10 +5,16 @@ CONF=${1:-release}
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 
-APP_NAME=${APP_NAME:-MyApp}
-BUNDLE_ID=${BUNDLE_ID:-com.example.myapp}
+# Defaults describe *this* app. They used to be the generic template values,
+# which meant invoking this script directly — rather than through
+# make_release.sh, which exports both — silently produced a "MyApp" binary with
+# the bundle ID com.example.myapp. That reads its preferences from the wrong
+# domain and, worse, makes macOS attach any Accessibility grant to the wrong
+# identity, so the grant does not carry over to a real build.
+APP_NAME=${APP_NAME:-PromptBar}
+BUNDLE_ID=${BUNDLE_ID:-com.promptbar.app}
 MACOS_MIN_VERSION=${MACOS_MIN_VERSION:-26.0}
-MENU_BAR_APP=${MENU_BAR_APP:-0}
+MENU_BAR_APP=${MENU_BAR_APP:-1}
 SIGNING_MODE=${SIGNING_MODE:-}
 APP_IDENTITY=${APP_IDENTITY:-}
 

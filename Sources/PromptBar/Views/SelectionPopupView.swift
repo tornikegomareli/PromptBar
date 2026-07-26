@@ -13,12 +13,18 @@ struct SelectionPopupView: View {
                 Text("Compile")
                     .font(Theme.font(12, .medium))
                     .foregroundStyle(Theme.label)
+                    .lineLimit(1)
             }
             .padding(.horizontal, 9)
             .padding(.vertical, 6)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        // Without this the label is compressed to nothing: the hosting
+        // controller sizes the panel from the content, and an unconstrained
+        // `Text` will happily report that it can shrink to zero, which left the
+        // chip a 52pt square showing only the brand mark.
+        .fixedSize()
         .help("Compile this into a prompt")
         .glassEffect(.regular, in: .rect(cornerRadius: Theme.Radius.control))
         .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous))

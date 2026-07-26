@@ -36,6 +36,18 @@ final class SelectionPopupController {
         let panel = panel ?? makePanel()
         self.panel = panel
 
+        // Size before placing. The hosting controller sizes the panel from its
+        // content, but not until it lays out — so positioning first centres the
+        // chip using a stale (initially zero) width and lands it half a chip to
+        // the right of the selection.
+        if let host = panel.contentViewController?.view {
+            host.layoutSubtreeIfNeeded()
+            let fitting = host.fittingSize
+            if fitting.width > 0, fitting.height > 0 {
+                panel.setContentSize(fitting)
+            }
+        }
+
         position(panel, near: selection.rect)
         // `orderFrontRegardless`, never `makeKeyAndOrderFront`: the source app
         // stays frontmost and keeps its selection.

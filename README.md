@@ -69,8 +69,9 @@ brew tap tornikegomareli/tap
 brew install --cask promptbar
 ```
 
-The app installs to `/Applications`. Launch it once so the menu bar item appears. To
-update or remove:
+The app installs to `/Applications`. Releases are signed with a Developer ID and
+notarized by Apple, so they launch without a Gatekeeper prompt. Launch it once so the
+menu bar item appears. To update or remove:
 
 ```bash
 brew upgrade --cask promptbar     # update to the latest release
@@ -116,6 +117,17 @@ failing quietly.
   PromptBar warns before it, and refuses rather than silently truncating.
 - History is written only when you copy, only when enabled, and never for apps on the
   exclusion list.
+
+## Releasing
+
+```bash
+Scripts/make_release.sh 0.2.0   # build, sign, notarize, staple, zip
+```
+
+Signing reads `.signing.env` (gitignored — copy `.signing.env.example`). The Apple ID and
+app-specific password are never written to the repository; they live in the macOS
+keychain under a `notarytool` profile. Without an identity the script still builds, but
+ad-hoc signed and not distributable.
 
 ## License
 

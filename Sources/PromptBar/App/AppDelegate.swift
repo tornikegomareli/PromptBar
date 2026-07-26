@@ -14,6 +14,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var overlay: OverlayWindowController!
     private var statusItem: NSStatusItem!
 
+    private let selectionPopup = SelectionPopupController()
+    private var selectionWatcher: SelectionWatcher!
+    private var grantWatchTask: Task<Void, Never>?
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         viewModel = PromptBarViewModel(
             model: model,
@@ -25,6 +29,72 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         setUpStatusItem()
         registerHotKeys()
+        setUpSelectionPopup()
+    }
+
+    // MARK: - Selection popup
+
+    private func setUpSelectionPopup() {
+        selectionWatcher = SelectionWatcher(limits: { [model] in model.capabilities.inputLimits })
+
+        selectionWatcher.onSelection = { [weak self] selection in
+            self?.selectionPopup.show(for: selection)
+        }
+        selectionWatcher.onDismiss = { [weak self] in
+            self?.selectionPopup.hide()
+        }
+        // Read nothing when the panel is already up, when the selection is in
+        // our own UI, or when the user has excluded the app it belongs to.
+        selectionWatcher.suppress = { [weak self] in
+            guard let self else { return true }
+            if self.overlay.isVisible { return true }
+            let front = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+            if front == Bundle.main.bundleIdentifier { return true }
+            return self.settings.isExcluded(bundleID: front)
+        }
+
+        selectionPopup.onCompile = { [weak self] text in
+            self?.overlay.show(with: text)
+        }
+
+        viewModel.onSelectionPopupChanged = { [weak self] _ in
+            self?.syncSelectionWatcher()
+        }
+        syncSelectionWatcher()
+    }
+
+    /// Starts or stops watching to match the setting and the current grant.
+    private func syncSelectionWatcher() {
+        viewModel.refreshAccessibilityTrust()
+        if viewModel.isWatchingSelection {
+            selectionWatcher.start()
+        } else {
+            selectionWatcher.stop()
+            selectionPopup.hide()
+        }
+        awaitAccessibilityGrant()
+    }
+
+    /// The user grants Accessibility in System Settings, outside this app, and
+    /// may never come back to PromptBar's window — so nothing would otherwise
+    /// tell us the feature can now start. Poll, but only while we are actually
+    /// waiting on a grant, and give up rather than tick forever.
+    private func awaitAccessibilityGrant() {
+        guard settings.selectionPopupEnabled, !viewModel.isAccessibilityTrusted else { return }
+        guard grantWatchTask == nil else { return }
+        grantWatchTask = Task { [weak self] in
+            for _ in 0..<60 {
+                try? await Task.sleep(for: .seconds(2))
+                guard let self, !Task.isCancelled else { return }
+                guard self.settings.selectionPopupEnabled else { break }
+                if AccessibilityAuthorization.isTrusted {
+                    self.grantWatchTask = nil
+                    self.syncSelectionWatcher()
+                    return
+                }
+            }
+            self?.grantWatchTask = nil
+        }
     }
 
     // MARK: - Status item & menu
@@ -105,6 +175,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         ).do {
             $0.keyEquivalentModifierMask = [.control, .option]
             $0.target = self
+        }
+
+        menu.addItem(
+            withTitle: "Compile from Selection",
+            action: #selector(toggleSelectionPopup),
+            keyEquivalent: ""
+        ).do {
+            $0.target = self
+            $0.state = viewModel.isWatchingSelection ? .on : .off
+            // Distinguish "off" from "on but waiting on Accessibility", which
+            // otherwise looks identical and reads as the toggle not working.
+            if settings.selectionPopupEnabled && !viewModel.isAccessibilityTrusted {
+                $0.title = "Compile from Selection — needs Accessibility"
+            }
         }
 
         if viewModel.canRestoreClipboard {
@@ -189,6 +273,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     /// Instant Enhance runs without showing the panel; the toast is the only UI.
     @objc private func instantEnhance() {
         Task { await viewModel.instantEnhance() }
+    }
+
+    @objc private func toggleSelectionPopup() {
+        let enabling = !settings.selectionPopupEnabled
+        viewModel.setSelectionPopupEnabled(enabling)
+        if enabling, !viewModel.isAccessibilityTrusted {
+            viewModel.openAccessibilitySettings()
+        }
     }
 
     @objc private func restoreClipboard() {

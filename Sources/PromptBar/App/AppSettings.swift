@@ -14,6 +14,7 @@ final class AppSettings {
         static let historyEnabled = "historyEnabled"
         static let retention = "historyRetention"
         static let excludedApps = "excludedApps"
+        static let selectionPopup = "selectionPopupEnabled"
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -23,6 +24,7 @@ final class AppSettings {
         _historyEnabled = defaults.bool(forKey: Key.historyEnabled)
         _retention = defaults.string(forKey: Key.retention).flatMap(RetentionPolicy.init) ?? .month
         _excludedApps = Self.decode([ExcludedApp].self, from: defaults.data(forKey: Key.excludedApps)) ?? []
+        _selectionPopupEnabled = defaults.bool(forKey: Key.selectionPopup)
         _launchAtLogin = LaunchAtLogin.isEnabled
     }
 
@@ -57,6 +59,15 @@ final class AppSettings {
     var excludedApps: [ExcludedApp] {
         get { _excludedApps }
         set { _excludedApps = newValue; defaults.set(Self.encode(newValue), forKey: Key.excludedApps) }
+    }
+
+    private var _selectionPopupEnabled: Bool
+    /// Off until the user asks for it. Turning it on means PromptBar starts
+    /// reading selections in other apps, which is a different privacy posture
+    /// from the hotkey — it must never be the default (PRD §22 P0 / §15).
+    var selectionPopupEnabled: Bool {
+        get { _selectionPopupEnabled }
+        set { _selectionPopupEnabled = newValue; defaults.set(newValue, forKey: Key.selectionPopup) }
     }
 
     /// Mirrors the real `SMAppService` registration rather than a stored flag,

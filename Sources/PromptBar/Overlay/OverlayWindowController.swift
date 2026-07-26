@@ -33,9 +33,18 @@ final class OverlayWindowController {
     }
 
     func show(ingestClipboard: Bool = true) {
+        present { $0.prepareForOpen(ingestClipboard: ingestClipboard) }
+    }
+
+    /// Opens on text the user selected in another app (the compile chip).
+    func show(with text: String) {
+        present { $0.prepareForOpen(with: text) }
+    }
+
+    private func present(_ configure: (PromptBarViewModel) -> Void) {
         previousApp = NSWorkspace.shared.frontmostApplication
         viewModel.sourceBundleID = previousApp?.bundleIdentifier
-        viewModel.prepareForOpen(ingestClipboard: ingestClipboard)
+        configure(viewModel)
 
         let panel = panel ?? makePanel()
         self.panel = panel

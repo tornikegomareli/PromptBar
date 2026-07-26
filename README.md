@@ -95,6 +95,21 @@ Requires **Apple Intelligence to be enabled** (System Settings → Apple Intelli
 Siri). If it is off, PromptBar says so and offers to open the right pane rather than
 failing quietly.
 
+## Compile from a selection
+
+Optional, and **off by default**. When enabled, selecting text in another app shows a
+small **Compile** chip beside it; clicking the chip opens PromptBar on that text.
+
+This is the one feature that needs a permission. Turn it on in **Settings → General →
+Selection**, then allow PromptBar under **Privacy & Security → Accessibility** — macOS
+publishes no "selection changed" event, so reading the selection is the only way to
+offer the chip. The chip never takes focus, so your selection survives it.
+
+What it does not do: it never reads password fields or apps on your exclusion list, it
+never stores or sends the text, and it never presses ⌘C on your behalf. That last one is
+why apps with no Accessibility text — many Electron apps — get no chip rather than a
+clipboard workaround. The **⇧⌥Space** hotkey still needs no permissions at all.
+
 ## Keyboard
 
 | Key | Action |

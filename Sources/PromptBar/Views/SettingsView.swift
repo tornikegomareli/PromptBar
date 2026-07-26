@@ -132,7 +132,47 @@ struct SettingsView: View {
                 .toggleStyle(.checkbox)
                 .font(Theme.font(13))
             }
+            row("Selection") {
+                VStack(alignment: .leading, spacing: 5) {
+                    Toggle("Show a compile chip when I select text", isOn: Binding(
+                        get: { settings.selectionPopupEnabled },
+                        set: { model.setSelectionPopupEnabled($0) }
+                    ))
+                    .toggleStyle(.checkbox)
+                    .font(Theme.font(13))
+
+                    Text(selectionHint)
+                        .font(Theme.font(11.5))
+                        .foregroundStyle(needsAccessibility ? Theme.warn : Theme.label2)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: 330, alignment: .leading)
+
+                    if needsAccessibility {
+                        Button("Open Accessibility Settings…") {
+                            model.openAccessibilitySettings()
+                        }
+                        .buttonStyle(.glass)
+                        .controlSize(.small)
+                    }
+                }
+            }
         }
+    }
+
+    private var needsAccessibility: Bool {
+        settings.selectionPopupEnabled && !model.isAccessibilityTrusted
+    }
+
+    private var selectionHint: String {
+        if needsAccessibility {
+            return "PromptBar needs Accessibility access to see what you select. "
+                + "Enable PromptBar under Privacy & Security › Accessibility."
+        }
+        if settings.selectionPopupEnabled {
+            return "PromptBar reads what you select in other apps to offer the chip. "
+                + "Password fields and excluded apps are always skipped."
+        }
+        return "Off. The hotkey needs no permissions; this chip needs Accessibility access."
     }
 
     // MARK: Shortcuts
@@ -263,7 +303,12 @@ struct SettingsView: View {
         .groupedBox()
     }
 
-    private var privacyPoints: [String] { PrivacyCopy.points(for: model.capabilities) }
+    private var privacyPoints: [String] {
+        PrivacyCopy.points(
+            for: model.capabilities,
+            watchingSelection: model.isWatchingSelection
+        )
+    }
 
     // MARK: About
 

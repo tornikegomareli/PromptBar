@@ -96,6 +96,9 @@ final class PromptBarViewModel {
         settingsIsRoot = asRoot
         isShowingSettings = true
         settings.refreshLaunchAtLogin()
+        // Accessibility can be granted or revoked outside the app, so the
+        // toggle's helper text has to be re-derived every time Settings opens.
+        refreshAccessibilityTrust()
     }
 
     /// Leaves settings, returning to the panel body — or closing the panel when
@@ -136,6 +139,57 @@ final class PromptBarViewModel {
         // Warm on every open — the clipboard path is the one that generates
         // immediately, so it needs this most.
         Task { [model] in await model.prewarm() }
+    }
+
+    /// Called when the panel opens for text the user selected elsewhere. The
+    /// text is already in hand, so this never touches the pasteboard.
+    func prepareForOpen(with text: String) {
+        reset()
+        openToken &+= 1
+        guard !settings.isExcluded(bundleID: sourceBundleID),
+              inputLimitState(of: text) != .empty else {
+            phase = .input
+            return
+        }
+        rawInput = text
+        startGeneration()
+        Task { [model] in await model.prewarm() }
+    }
+
+    private func inputLimitState(of text: String) -> InputLimits.State {
+        inputLimits.state(for: text)
+    }
+
+    // MARK: - Selection popup
+
+    /// Set by the app shell so flipping the toggle starts or stops the watcher
+    /// immediately, rather than at the next launch.
+    var onSelectionPopupChanged: ((Bool) -> Void)?
+
+    var isAccessibilityTrusted: Bool = AccessibilityAuthorization.isTrusted
+
+    func refreshAccessibilityTrust() {
+        isAccessibilityTrusted = AccessibilityAuthorization.isTrusted
+    }
+
+    /// Turning the popup on is also when we ask for Accessibility — requesting
+    /// it at launch would prompt people who never wanted the feature.
+    func setSelectionPopupEnabled(_ enabled: Bool) {
+        settings.selectionPopupEnabled = enabled
+        if enabled, !AccessibilityAuthorization.isTrusted {
+            AccessibilityAuthorization.request()
+        }
+        refreshAccessibilityTrust()
+        onSelectionPopupChanged?(enabled)
+    }
+
+    func openAccessibilitySettings() {
+        AccessibilityAuthorization.openSettingsPane()
+    }
+
+    /// True when the popup is switched on *and* actually able to run.
+    var isWatchingSelection: Bool {
+        settings.selectionPopupEnabled && isAccessibilityTrusted
     }
 
     private func reset() {

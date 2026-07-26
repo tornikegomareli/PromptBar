@@ -77,7 +77,14 @@ struct ShortcutRow: Identifiable, Sendable {
 /// Privacy bullets, derived from what the active provider actually does — a
 /// networked provider must not be described as making zero network requests.
 enum PrivacyCopy {
-    static func points(for capabilities: ModelCapabilities) -> [String] {
+    /// - Parameter watchingSelection: whether the selection popup is running.
+    ///   It must change what this says. With the popup on, PromptBar reads text
+    ///   the user selects in other apps, and a privacy page that still claimed
+    ///   PromptBar only looks when asked would be false.
+    static func points(
+        for capabilities: ModelCapabilities,
+        watchingSelection: Bool = false
+    ) -> [String] {
         var points = ["No account and no sign-in \u{2014} ever."]
         if capabilities.runsOnDevice {
             points.append("Zero network requests for enhancement. \(capabilities.providerName) already lives on your Mac.")
@@ -86,6 +93,10 @@ enum PrivacyCopy {
         }
         points.append("Each enhancement runs in a fresh session, so prompts never leak between requests.")
         points.append("No general clipboard monitoring. PromptBar reads the pasteboard only when you ask.")
+        if watchingSelection {
+            points.append("Selection popup is on \u{2014} PromptBar reads what you select in other apps to decide whether to offer the chip. The text is read as you select it, never written down, and never sent anywhere.")
+            points.append("Password fields are never read, and neither are your excluded apps.")
+        }
         return points
     }
 }

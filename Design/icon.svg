@@ -1,0 +1,60 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Deep indigo → electric blue, lit from the top-left like a macOS icon. -->
+    <linearGradient id="plate" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0%"   stop-color="#6E7BFF"/>
+      <stop offset="45%"  stop-color="#4759F0"/>
+      <stop offset="100%" stop-color="#2B1EAE"/>
+    </linearGradient>
+
+    <radialGradient id="sheen" cx="0.3" cy="0.12" r="0.85">
+      <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.38"/>
+      <stop offset="55%"  stop-color="#FFFFFF" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.55"/>
+      <stop offset="50%"  stop-color="#FFFFFF" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#000018" stop-opacity="0.30"/>
+    </linearGradient>
+
+    <filter id="cast" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="22" stdDeviation="26" flood-color="#150A4A" flood-opacity="0.42"/>
+    </filter>
+
+    <filter id="emboss" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="7" stdDeviation="9" flood-color="#160C56" flood-opacity="0.34"/>
+    </filter>
+  </defs>
+
+  <!-- Rounded plate, inset with a margin the way macOS app icons are. -->
+  <g filter="url(#cast)">
+    <rect x="102" y="88" width="820" height="820" rx="186" ry="186" fill="url(#plate)"/>
+    <rect x="102" y="88" width="820" height="820" rx="186" ry="186" fill="url(#sheen)"/>
+    <rect x="102.75" y="88.75" width="818.5" height="818.5" rx="185.25" ry="185.25"
+          fill="none" stroke="url(#rim)" stroke-width="1.5"/>
+  </g>
+
+  <!--
+    The mark: a bracket holds the rough thought, the arrow compiles it, and the
+    stack on the right resolves from a ragged line into aligned, structured ones.
+  -->
+  <g transform="translate(-14 0)" filter="url(#emboss)" fill="none" stroke="#FFFFFF"
+     stroke-linecap="round" stroke-linejoin="round">
+
+    <!-- Opening bracket: holds the rough thought -->
+    <path d="M392 300 H316 a56 56 0 0 0 -56 56 V668 a56 56 0 0 0 56 56 H392"
+          stroke-width="58"/>
+
+    <!-- Compile arrow -->
+    <path d="M470 512 H704" stroke-width="58"/>
+    <path d="M626 434 L704 512 L626 590" stroke-width="58"/>
+
+    <!-- Structured output: bars resolving into alignment.
+         `opacity` on the element, not stroke-opacity — the latter is dropped
+         by some rasterizers. -->
+    <path d="M470 352 H690" stroke-width="34" opacity="0.42"/>
+    <path d="M470 672 H690" stroke-width="34" opacity="0.68"/>
+  </g>
+</svg>

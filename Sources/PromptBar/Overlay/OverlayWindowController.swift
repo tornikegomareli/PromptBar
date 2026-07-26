@@ -87,11 +87,13 @@ final class OverlayWindowController {
         panel.animationBehavior = .utilityWindow
         panel.delegate = windowDelegate
 
-        // The content has a definite intrinsic size, so let the hosting view
-        // size the window to it — the panel hugs its content.
-        let host = NSHostingView(rootView: PromptBarPanelView(model: viewModel))
-        host.sizingOptions = [.preferredContentSize]
-        panel.contentView = host
+        // Hosted through a controller, not by assigning `contentView`: the
+        // panel must track its content's height as phases and variants change.
+        // `NSHostingView.sizingOptions = [.preferredContentSize]` cannot do
+        // that — `preferredContentSize` is propagated by NSViewController, so
+        // with a bare content view the panel stayed pinned to the 520pt height
+        // above and taller results had their footer actions clipped away.
+        panel.contentViewController = NSHostingController(rootView: PromptBarPanelView(model: viewModel))
         return panel
     }
 
@@ -105,7 +107,11 @@ final class OverlayWindowController {
         let frame = activeScreen().visibleFrame
         let size = panel.frame.size
         let x = frame.midX - size.width / 2
-        let y = frame.maxY - (frame.height * PanelMetrics.verticalAnchor) - size.height / 2
+        var y = frame.maxY - (frame.height * PanelMetrics.verticalAnchor) - size.height / 2
+        // Keep the panel inside the visible frame. The bottom clamp comes last
+        // deliberately: on a screen too short for the panel, losing the top is
+        // recoverable but losing the footer puts the actions out of reach.
+        y = max(frame.minY, min(y, frame.maxY - size.height))
         panel.setFrameOrigin(NSPoint(x: x.rounded(), y: y.rounded()))
     }
 

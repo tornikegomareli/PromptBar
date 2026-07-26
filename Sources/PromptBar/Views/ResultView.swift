@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// Result state: quoted original, detected/missing metadata, a native
@@ -82,23 +83,37 @@ struct PromptBody: View {
     let text: String
     let key: SuggestionStyle
 
-    /// Above this length the body scrolls at a fixed height so the panel can
-    /// never grow past the screen; shorter prompts let the panel hug content.
-    private static let scrollThreshold = 1100
-    private static let scrollHeight: CGFloat = 320
+    /// Room the surrounding chrome needs: titlebar, quoted original, tag rows,
+    /// variant picker, divider and footer.
+    private static let chromeAllowance: CGFloat = 260
+
+    /// The body scrolls past this height so the panel can never grow off the
+    /// screen; shorter prompts let the panel hug their content.
+    private static var maxHeight: CGFloat {
+        let visible = NSScreen.main?.visibleFrame.height ?? 900
+        return min(520, max(200, visible - chromeAllowance))
+    }
 
     @State private var revealed = 0
+    /// Measured, not inferred from `text.count`. Character count is a poor
+    /// proxy for rendered height: the Structured variant is short in characters
+    /// but tall in lines (headings, bullets, blank lines), so it slipped under
+    /// the old 1100-character threshold at ~526 characters while laying out
+    /// ~413pt tall — unbounded, now that the panel really does track content.
+    @State private var contentHeight: CGFloat = 0
 
     private var lines: [String] { text.components(separatedBy: "\n") }
 
     var body: some View {
-        Group {
-            if text.count > Self.scrollThreshold {
-                ScrollView { stack }.frame(height: Self.scrollHeight)
-            } else {
-                stack
-            }
+        let cap = Self.maxHeight
+        ScrollView {
+            stack
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentHeight = $0 }
         }
+        // nil until measured, so the first pass reports the content's ideal
+        // height instead of collapsing to zero.
+        .frame(height: contentHeight > 0 ? min(contentHeight, cap) : nil)
+        .scrollDisabled(contentHeight <= cap)
         // `.task(id:)` so SwiftUI cancels the previous reveal when the variant
         // changes or the panel goes away — unstructured Tasks raced each other.
         .task(id: key) { await reveal() }

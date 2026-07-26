@@ -103,6 +103,10 @@ failing quietly.
 Optional, and **off by default**. When enabled, selecting text in another app shows a
 small **Compile** chip beside it; clicking the chip opens PromptBar on that text.
 
+<p align="center">
+  <img src="Design/screenshot-selection.png" alt="A sentence selected in another app with PromptBar's Compile chip floating above it" width="700">
+</p>
+
 This is the one feature that needs a permission. Turn it on in **Settings → General →
 Selection**, then allow PromptBar under **Privacy & Security → Accessibility** — macOS
 publishes no "selection changed" event, so reading the selection is the only way to

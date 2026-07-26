@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build and test
+    # PromptBar targets macOS 26 and links FoundationModels, so it needs a
+    # runner image with the macOS 26 SDK.
+    runs-on: macos-26
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          sudo xcode-select -s /Applications/Xcode.app
+          swift --version
+
+      - name: Cache SwiftPM build
+        uses: actions/cache@v4
+        with:
+          path: .build
+          key: ${{ runner.os }}-spm-${{ hashFiles('Package.swift', 'Package.resolved') }}
+          restore-keys: ${{ runner.os }}-spm-
+
+      - name: Build
+        run: swift build --build-tests
+
+      - name: Test
+        run: swift test
+
+      - name: Package .app
+        env:
+          APP_NAME: PromptBar
+          BUNDLE_ID: com.promptbar.app
+          MENU_BAR_APP: "1"
+          SIGNING_MODE: adhoc
+        run: |
+          Scripts/package_app.sh release
+          test -x PromptBar.app/Contents/MacOS/PromptBar
+          test -f PromptBar.app/Contents/Resources/Icon.icns
+
+      - name: Verify icon is in sync with its SVG source
+        run: |
+          shasum -a 256 Icon.icns > /tmp/icon-before
+          Scripts/make_icon.sh
+          shasum -a 256 Icon.icns > /tmp/icon-after
+          if ! diff -q <(cut -d' ' -f1 /tmp/icon-before) <(cut -d' ' -f1 /tmp/icon-after) >/dev/null; then
+            echo "::warning::Icon.icns differs from a fresh render of Design/icon.svg"
+          fi

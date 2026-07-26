@@ -21,14 +21,9 @@
 </p>
 
 Copy a rough instruction, press a shortcut, and PromptBar rewrites it into a prompt
-another AI can actually execute — then puts it on your clipboard and disappears.
+another AI can actually execute, then puts it on your clipboard and disappears.
 
-It is a **prompt compiler, not a chatbot**: one input, three variants, one keystroke to
-copy. Every enhancement runs on Apple's on-device Foundation Models. No account, no
-network requests, nothing leaves your Mac.
-
-**macOS 26+, Apple silicon only.** Built with SwiftUI and Swift 6; AppKit drives the
-floating panel and the global hotkey.
+Every enhancement runs on Apple's on-device Foundation Models, nothing leaves your Mac, free.
 
 ## Features
 
@@ -49,30 +44,6 @@ floating panel and the global hotkey.
   container, with retention limits and per-app exclusions.
 - **Private by construction** — the privacy claims in Settings are derived from the
   active provider's capabilities, so they cannot drift out of sync with reality.
-
-## How it works
-
-```
-⇧⌥Space ──► OverlayWindowController ──► PromptBarViewModel
-                                              │
-              ClipboardService ───────────────┤
-                                              ▼
-                                    PromptModel  (the seam)
-                                      ├─ AppleSystemPromptModel   (ships)
-                                      └─ StaticPromptModel        (offline / tests)
-                                              │
-                        PromptInstructions ───┤   system prompt + target guidance
-                        GeneratedEnhancement ─┤   @Generable guided-generation schema
-                        EnhancementAssembler ─┘   provider-neutral post-processing
-                                              ▼
-                                       EnhancementBundle ──► NSPasteboard
-```
-
-A fresh `LanguageModelSession` is created per enhancement — prompt rewriting gains
-nothing from a transcript, and reuse would let one request leak into the next. The model
-fills a `@Generable` schema rather than emitting JSON that has to be parsed, and the
-structured variant is generated as *separate section fields* and laid out in Swift, so
-its format is deterministic.
 
 ### Adding another model provider
 
@@ -122,30 +93,6 @@ failing quietly.
 | `⌘,` | Settings |
 | `esc` | Close |
 
-## Project layout
-
-| Path | Contents |
-|---|---|
-| `Sources/PromptBar/Engine/` | The model seam, the Apple adapter, the system prompt, the guided-generation schema, the assembler, the linter |
-| `Sources/PromptBar/ViewModels/` | The panel state machine |
-| `Sources/PromptBar/Views/` | SwiftUI panel, settings, and design-system primitives |
-| `Sources/PromptBar/Overlay/` | `NSPanel` lifecycle, positioning, toasts |
-| `Sources/PromptBar/Services/` | Global hotkeys (Carbon), pasteboard, history, launch-at-login |
-| `Sources/PromptBar/Models/` | Domain types: bundles, failures, limits, settings |
-| `Scripts/` | Build, package, run, and icon generation |
-| `Design/` | `icon.svg` (the icon source of truth) and screenshots |
-
-## Development
-
-```bash
-swift build            # compile
-swift test             # 41 tests, no network or model required
-Scripts/make_icon.sh   # regenerate Icon.icns from Design/icon.svg
-```
-
-Tests run entirely against `StaticPromptModel`, so the suite is deterministic and needs
-neither Apple Intelligence nor a network.
-
 ## Notes
 
 - The on-device session shares one 4,096-token window between the instructions, the
@@ -153,8 +100,7 @@ neither Apple Intelligence nor a network.
   PromptBar warns before it, and refuses rather than silently truncating.
 - History is written only when you copy, only when enabled, and never for apps on the
   exclusion list.
-- The menu bar glyph and the app icon are drawn from the same bracket-and-arrow path.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+[MIT](LICENSE).

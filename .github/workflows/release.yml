@@ -1,71 +1,49 @@
-name: Release
+name: Release checks
 
 on:
   push:
     tags: ["v*"]
   workflow_dispatch:
-    inputs:
-      version:
-        description: "Version to release, without the leading v (e.g. 0.2.0)"
-        required: true
 
+# Read-only: releases are published from a developer machine, not from CI.
+#
+# Distribution builds are signed with a Developer ID and notarized by Apple,
+# which needs the signing certificate and the notarytool keychain profile.
+# Neither exists on a GitHub runner, so CI verifies the tag and leaves
+# publishing to `Scripts/make_release.sh`, which signs, notarizes and staples.
+# This job must never upload an artifact, or it would replace a notarized
+# build with an ad-hoc one.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  release:
-    name: Build and publish
+  verify:
+    name: Verify tagged build
     runs-on: macos-26
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Resolve version
-        id: version
-        run: |
-          if [ -n "${{ github.event.inputs.version }}" ]; then
-            VERSION="${{ github.event.inputs.version }}"
-          else
-            VERSION="${GITHUB_REF_NAME#v}"
-          fi
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-
       - name: Test
         run: swift test
 
-      - name: Build release artifact
-        run: Scripts/make_release.sh "${{ steps.version.outputs.version }}"
-
-      - name: Compute checksum
-        id: sha
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          echo "sha=$(cat dist/PromptBar-$VERSION.zip.sha256)" >> "$GITHUB_OUTPUT"
-
-      - name: Publish release
+      - name: Build and package
         env:
-          GH_TOKEN: ${{ github.token }}
+          APP_NAME: PromptBar
+          BUNDLE_ID: com.promptbar.app
+          MENU_BAR_APP: "1"
+          SIGNING_MODE: adhoc
+          ARCHES: arm64
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          SHA="${{ steps.sha.outputs.sha }}"
-          NOTES=$(cat <<EOF
-          ## Install
+          Scripts/package_app.sh release
+          test -x PromptBar.app/Contents/MacOS/PromptBar
+          test -f PromptBar.app/Contents/Resources/Icon.icns
 
-          \`\`\`bash
-          brew tap tornikegomareli/tap
-          brew install --cask promptbar
-          \`\`\`
-
-          Requires macOS 26 on Apple silicon, with Apple Intelligence enabled.
-
-          \`\`\`
-          SHA-256  $SHA
-          \`\`\`
-          EOF
-          )
-          gh release create "v$VERSION" \
-            "dist/PromptBar-$VERSION.zip" \
-            --title "PromptBar $VERSION" \
-            --notes "$NOTES" \
-            --verify-tag || \
-          gh release upload "v$VERSION" "dist/PromptBar-$VERSION.zip" --clobber
+      - name: Check the tag matches version.env
+        run: |
+          source version.env
+          TAG="${GITHUB_REF_NAME#v}"
+          if [ -n "$TAG" ] && [ "$TAG" != "$MARKETING_VERSION" ]; then
+            echo "::error::Tag v$TAG does not match MARKETING_VERSION=$MARKETING_VERSION"
+            exit 1
+          fi

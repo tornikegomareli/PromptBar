@@ -5,3 +5,10 @@ build/
 DerivedData/
 .DS_Store
 dist/
+
+# Local signing credentials — never commit
+.signing.env
+*.p8
+*.p12
+*.cer
+*.provisionprofile

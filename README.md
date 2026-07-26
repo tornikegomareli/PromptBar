@@ -9,6 +9,7 @@
 </p>
 
 <p align="center">
+  <a href="https://tornikegomareli.github.io/promptbar-landing/"><img alt="Website" src="https://img.shields.io/badge/website-PromptBar-6874ff?style=flat-square"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-blue?style=flat-square"></a>
   <img alt="macOS 26+" src="https://img.shields.io/badge/macOS-26%2B-black?style=flat-square&logo=apple">
   <img alt="Apple silicon" src="https://img.shields.io/badge/Apple%20silicon-required-black?style=flat-square">

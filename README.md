@@ -62,6 +62,22 @@ of the app needs to know, so nothing outside `Engine/` has to change:
 
 ## Install
 
+### Homebrew
+
+```bash
+brew tap tornikegomareli/tap
+brew install --cask promptbar
+```
+
+The app installs to `/Applications`. Launch it once so the menu bar item appears. To
+update or remove:
+
+```bash
+brew upgrade --cask promptbar     # update to the latest release
+brew uninstall --cask promptbar   # remove the app
+brew uninstall --zap promptbar    # also remove settings and local history
+```
+
 ### From source
 
 ```bash
